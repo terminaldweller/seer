@@ -35,6 +35,7 @@ def GetCurDF(cur, fp):
     openUrl.close()
     df = pd.read_json(r.decode())
     df['date'] = df['date'].astype(np.int64) // 1000000000
+    print(df.head())
     return df
 
 class PastSampler:

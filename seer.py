@@ -28,6 +28,7 @@ def launch_ais(which):
     elif which == "lstm_type_2": lstm_type_2()
     elif which == "lstm_type_3": lstm_type_3()
     elif which == "cnn_type_1": pass
+    elif which == "tfann_type_1": tfann_type_1()
     else: pass
 
 # write code here
