@@ -17,6 +17,7 @@ from keras.models import Sequential
 from keras.layers import Activation, Dense
 from keras.layers import LSTM
 from keras.layers import Dropout
+from keras.models import load_model
 
 window_len = 10
 split_date = "2017-06-01"
@@ -75,7 +76,7 @@ def get_sets(crypto, model_data):
 
     LSTM_test_inputs = [np.array(LSTM_test_inputs) for LSTM_test_inputs in LSTM_test_inputs]
     LSTM_test_inputs = np.array(LSTM_test_inputs)
-    return LSTM_training_inputs, LSTM_test_inputs, training_set
+    return LSTM_training_inputs, LSTM_test_inputs, training_set, test_set
 
 def build_model(inputs, output_size, neurons, activ_func="linear", dropout=0.25, loss="mae", optimizer="adam"):
     model = Sequential()
@@ -89,7 +90,7 @@ def build_model(inputs, output_size, neurons, activ_func="linear", dropout=0.25,
 def lstm_type_1(crypto, crypto_short):
     model_data = getData_CMC(crypto, crypto_short)
     np.random.seed(202)
-    training_inputs, test_inputs, training_set = get_sets(crypto, model_data)
+    training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
     model = build_model(training_inputs, output_size=1, neurons=20)
     training_outputs = (training_set['Close'][window_len:].values/training_set['Close'][:-window_len].values)-1
     history = model.fit(training_inputs, training_outputs, epochs=50, batch_size=1, verbose=2, shuffle=True)
@@ -97,7 +98,7 @@ def lstm_type_1(crypto, crypto_short):
 def lstm_type_2(crypto, crypto_short, pred_range, neuron_count):
     model_data = getData_CMC(crypto, crypto_short)
     np.random.seed(202)
-    training_inputs, test_inputs, training_set = get_sets(crypto, model_data)
+    training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
     model = build_model(training_inputs, output_size=pred_range, neurons=neuron_count)
     training_outputs = (training_set['Close'][window_len:].values/training_set['Close'][:-window_len].values)-1
     training_outputs = []
@@ -109,7 +110,7 @@ def lstm_type_2(crypto, crypto_short, pred_range, neuron_count):
 def lstm_type_3(crypto, crypto_short, pred_range, neuron_count):
     model_data = getData_CMC(crypto, crypto_short)
     np.random.seed(202)
-    training_inputs, test_inputs, training_set = get_sets(crypto, model_data)
+    training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
     model = build_model(training_inputs, output_size=1, neurons=neuron_count)
     training_outputs = (training_set['Close'][window_len:].values/training_set['Close'][:-window_len].values)-1
     training_outputs = []
@@ -118,7 +119,16 @@ def lstm_type_3(crypto, crypto_short, pred_range, neuron_count):
         np.random.seed(rand_seed)
         temp_model = build_model(training_inputs, output_size=1, neurons=neuron_count)
         temp_model.fit(training_inputs, (training_set['Close'][window_len:].values/training_set['Close'][:-window_len].values)-1, epochs=50, batch_size=1, verbose=0, shuffle=True)
-        temp_model.save(crypto + '_model_randseed_%d.h5'%rand_seed)
+        temp_model.save("./lstm-models/" + crypto + '_model_randseed_%d.h5'%rand_seed)
+
+def load_models(crypto, crypto_short):
+    preds = []
+    model_data = getData_CMC(crypto, crypto_short)
+    np.random.seed(202)
+    training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
+    for rand_seed in range(775,800):
+        temp_model = load_model("./lstm-models/" + crypto + '_model_randseed_%d.h5'%rand_seed)
+        preds.append(np.mean(abs(np.transpose(temp_model.predict(test_inputs))-(test_set['Close'].values[window_len:]/test_set['Close'].values[:-window_len]-1))))
 
 # write code here
 def premain(argparser):
@@ -126,7 +136,8 @@ def premain(argparser):
     #here
     #lstm_type_1("ethereum", "ether")
     #lstm_type_2("ethereum", "ether", 5, 20)
-    lstm_type_3("ethereum", "ether", 5, 20)
+    #lstm_type_3("ethereum", "ether", 5, 20)
+    load_models("ethereum", "eth")
 
 def main():
     argparser = Argparser()

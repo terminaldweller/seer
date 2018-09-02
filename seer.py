@@ -6,8 +6,9 @@ import code
 import readline
 import signal
 import sys
-from ltsm import lstm_type_1, lstm_type_2, lstm_type_3
-from cnn import marrionette_type_1
+from lstm import lstm_type_1, lstm_type_2, lstm_type_3
+from marionette import marrionette_type_1
+from tfann import tfann_type_1
 
 def SigHandler_SIGINT(signum, frame):
     print()
