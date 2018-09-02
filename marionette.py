@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# _*_ coding=utf-8 _*_
 
 import argparse
 import code
@@ -31,10 +32,7 @@ class Argparser(object):
         parser.add_argument("--dbg", action="store_true", help="debug", default=False)
         self.args = parser.parse_args()
 
-# write code here
-def premain(argparser):
-    signal.signal(signal.SIGINT, SigHandler_SIGINT)
-    #here
+def cnn_type_1():
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
     names = ["sepal-length", "sepal-width", "petal-length", "petal-width", "class"]
     dataset = pandas.read_csv(url, names=names)
@@ -83,6 +81,12 @@ def premain(argparser):
     print(accuracy_score(Y_validation, predictions))
     print(confusion_matrix(Y_validation, predictions))
     print(classification_report(Y_validation, predictions))
+
+# write code here
+def premain(argparser):
+    signal.signal(signal.SIGINT, SigHandler_SIGINT)
+    #here
+    cnn_type_1()
 
 def main():
     argparser = Argparser()
