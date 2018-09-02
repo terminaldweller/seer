@@ -32,7 +32,7 @@ class Argparser(object):
         parser.add_argument("--dbg", action="store_true", help="debug", default=False)
         self.args = parser.parse_args()
 
-def cnn_type_1():
+def marrionette_type_1():
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
     names = ["sepal-length", "sepal-width", "petal-length", "petal-width", "class"]
     dataset = pandas.read_csv(url, names=names)
@@ -86,7 +86,7 @@ def cnn_type_1():
 def premain(argparser):
     signal.signal(signal.SIGINT, SigHandler_SIGINT)
     #here
-    cnn_type_1()
+    marrionette_type_1()
 
 def main():
     argparser = Argparser()

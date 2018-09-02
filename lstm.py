@@ -46,7 +46,6 @@ def getData_CMC(crypto, crypto_short):
     kwargs = {'close_off_high': lambda x: 2*(x['High']- x['Close'])/(x['High']-x['Low'])-1, 'volatility': lambda x: (x['High']- x['Low'])/(x['Open'])}
     market_info = market_info.assign(**kwargs)
     model_data = market_info[['Date']+[coin+metric for coin in [""] for metric in ['Close','Volume','close_off_high','volatility']]]
-    #model_data = market_info[['Date']+[metric for metric in ['Close','Volume','close_off_high','volatility']]]
     model_data = model_data.sort_values(by='Date')
     print(model_data.head())
     return model_data
