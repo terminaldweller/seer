@@ -65,7 +65,6 @@ def g_drive_up(file_path, file_name, file_type, to_folder):
     for file in parent_dir.get("files", []):
         print(file.get("name") + "---" + file.get("id"))
         folder_id = file.get("id")
-    #folder_id = "1FzAIXooboNvnAj4km5ujNporZp-ivro5"
     body = {'name': TITLE, 'description': DESCRIPTION, 'parents': [folder_id]}
     new_file = drive_service.files().create(body=body, media_body=media_body, fields="id").execute()
     print(new_file.get("id"))
