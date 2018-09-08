@@ -14,7 +14,7 @@ from tfann import tfann_type_1
 from cnn import cnn_type_1
 import httplib2
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 import googleapiclient.http
 import oauth2client.client
 import io
@@ -43,13 +43,9 @@ def get_name_from_path(path):
     else:
         return path[path_pos+1:]
 
-def g_drive_up(file_path, file_name, file_type, to_folder):
+def authenticate_drive():
     OAUTH2_SCOPE = "https://www.googleapis.com/auth/drive"
     CLIENT_SECRETS = "./secret.json"
-    FILENAME = file_path
-    MIMETYPE = file_type
-    TITLE = file_name
-    DESCRIPTION = "a file"
     flow = oauth2client.client.flow_from_clientsecrets(CLIENT_SECRETS, OAUTH2_SCOPE)
     flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
     authorize_url = flow.step1_get_authorize_url()
@@ -59,6 +55,32 @@ def g_drive_up(file_path, file_name, file_type, to_folder):
     http = httplib2.Http()
     credentials.authorize(http)
     drive_service = build('drive', 'v3', http=http)
+    return drive_service
+
+def get_folder_id(folder_name, drive_service):
+    parent_dir = drive_service.files().list(q="mimeType='application/vnd.google-apps.folder' and name='"+folder_name+"'", fields="files(id, name)", spaces="drive").execute()
+    folder_id = str()
+    for file in parent_dir.get("files", []):
+        print(file.get("name") + "---" + file.get("id"))
+        folder_id = file.get("id")
+    return folder_id
+
+def get_file_id(file_name, folder_name, drive_service):
+    folder_id = get_folder_id(folder_name, drive_service)
+    download_to_be = drive_service.files().list(q="name='"+file_name+"' and '"+folder_id+"' in parents", fields="files(id, name)", spaces="drive").execute()
+    file_id = str()
+    for file in download_to_be.get("files", []):
+        print(file.get("name") + "---" + file.get("id"))
+        file_id = file.get("id")
+    return file_id
+
+def g_drive_up(file_path, file_name, file_type, to_folder):
+    FILENAME = file_path
+    MIMETYPE = file_type
+    TITLE = file_name
+    DESCRIPTION = "a file"
+    drive_service = authenticate_drive()
+
     media_body = googleapiclient.http.MediaFileUpload(FILENAME, mimetype=MIMETYPE, resumable=True)
     parent_dir = drive_service.files().list(q="mimeType='application/vnd.google-apps.folder' and name='"+to_folder+"'", fields="files(id, name)", spaces="drive").execute()
     folder_id = str()
@@ -71,17 +93,7 @@ def g_drive_up(file_path, file_name, file_type, to_folder):
     #pprint.pprint(new_file)
 
 def g_drive_down(folder_name, file_name):
-    OAUTH2_SCOPE = "https://www.googleapis.com/auth/drive"
-    CLIENT_SECRETS = "./secret.json"
-    flow = oauth2client.client.flow_from_clientsecrets(CLIENT_SECRETS, OAUTH2_SCOPE)
-    flow.redirect_uri = oauth2client.client.OOB_CALLBACK_URN
-    authorize_url = flow.step1_get_authorize_url()
-    print('Go to the following link in your browser: ' + authorize_url)
-    code = input('Enter verification code: ').strip()
-    credentials = flow.step2_exchange(code)
-    http = httplib2.Http()
-    credentials.authorize(http)
-    drive_service = build('drive', 'v3', http=http)
+    drive_service = authenticate_drive()
 
     #get folder id
     parent_dir = drive_service.files().list(q="mimeType='application/vnd.google-apps.folder' and name='"+folder_name+"'", fields="files(id, name)", spaces="drive").execute()
@@ -106,6 +118,13 @@ def g_drive_down(folder_name, file_name):
         status, done = downloader.next_chunk()
         print("Download %d%%." % int(status.progress() * 100))
     #print(downloader)
+
+def g_drive_update(folder_name, file_name):
+    drive_service = authenticate_drive()
+    file_id = get_file_id(file_name, folder_name, drive_service)
+    u_file = drive_service.files().get(fileId=file_id).execute()
+    media_body = MediaFileUpload(resumable=True)
+    updated_file = drive_service.files().update(fileId=file_id, body=u_file, media_body=media_body).execute()
 
 def launch_ais(which):
     if which == "marionette": marrionette_type_1()
