@@ -2,6 +2,8 @@
 # _*_ coding=utf-8 _*_
 #original source:https://github.com/dashee87/blogScripts/blob/master/Jupyter/2017-11-20-predicting-cryptocurrency-prices-with-deep-learning.ipynb
 
+#@#!pip install lxml
+#@#!mkdir lstm-models
 import argparse
 import code
 import readline
@@ -134,10 +136,10 @@ def load_models(crypto, crypto_short):
 def premain(argparser):
     signal.signal(signal.SIGINT, SigHandler_SIGINT)
     #here
-    #lstm_type_1("ethereum", "ether")
+    lstm_type_1("ethereum", "ether")
     #lstm_type_2("ethereum", "ether", 5, 20)
     #lstm_type_3("ethereum", "ether", 5, 20)
-    load_models("ethereum", "eth")
+    #load_models("ethereum", "eth")
 
 def main():
     argparser = Argparser()

@@ -2,7 +2,7 @@
 # _*_ coding=utf-8 _*_
 # original source-https://nicholastsmith.wordpress.com/2017/11/13/cryptocurrency-price-prediction-using-deep-learning-in-tensorflow/
 
-import argparse
+#@#!pip install TFANN
 import code
 import readline
 import signal
@@ -13,18 +13,6 @@ import os
 import pandas as pd
 import urllib.request
 import matplotlib.pyplot as mpl
-
-def SigHandler_SIGINT(signum, frame):
-    print()
-    sys.exit(0)
-
-class Argparser(object):
-    def __init__(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--string", type=str, help="string")
-        parser.add_argument("--bool", action="store_true", help="bool", default=False)
-        parser.add_argument("--dbg", action="store_true", help="debug", default=False)
-        self.args = parser.parse_args()
 
 def GetAPIUrl(cur, sts = 1420070400):
     return 'https://poloniex.com/public?command=returnChartData&currencyPair=USDT_{:s}&start={:d}&end=9999999999&period=7200'.format(cur, sts)
@@ -134,25 +122,12 @@ def tfann_type_1():
         mpl.show()
 
 # write code here
-def premain(argparser):
-    signal.signal(signal.SIGINT, SigHandler_SIGINT)
+def premain():
     #here
     tfann_type_1()
 
 def main():
-    argparser = Argparser()
-    if argparser.args.dbg:
-        try:
-            premain(argparser)
-        except Exception as e:
-            print(e.__doc__)
-            if e.message: print(e.message)
-            variables = globals().copy()
-            variables.update(locals())
-            shell = code.InteractiveConsole(variables)
-            shell.interact(banner="DEBUG REPL")
-    else:
-        premain(argparser)
+    premain()
 
 if __name__ == "__main__":
     main()
