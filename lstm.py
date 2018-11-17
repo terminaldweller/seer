@@ -20,10 +20,11 @@ from keras.layers import Activation, Dense
 from keras.layers import LSTM
 from keras.layers import Dropout
 from keras.models import load_model
+from keras import models
+from keras import layers
 
 window_len = 10
-#split_date = "2018-03-01"
-split_date = "2017.01.01"
+split_date = "2018-03-01"
 
 def SigHandler_SIGINT(signum, frame):
     print()
@@ -58,7 +59,7 @@ def getData_CMC(crypto, crypto_short):
     return model_data
 
 def getData_Stock(name, period):
-    info = pd.read_csv("./data/"+name+"/"+period+".csv", encoding="utf-8")
+    info = pd.read_csv("./data/"+name+"/"+period+".csv", encoding="utf-16")
     return info
 
 def get_sets(crypto, model_data):
@@ -98,7 +99,32 @@ def build_model(inputs, output_size, neurons, activ_func="linear", dropout=0.25,
     return model
 
 def stock():
-    data = getData_Stock("irxo", "Daily")
+    split_date = "2017.01.01"
+    model_data = getData_Stock("irxo", "Daily")
+    model_data = model_data.sort_values(by='Date')
+
+    training_set, test_set = model_data[model_data['Date']<split_date], model_data[model_data['Date']>=split_date]
+    training_set = training_set.drop('Date', 1)
+    test_set = test_set.drop('Date', 1)
+
+    training_inputs = training_set
+    training_outputs = training_set.drop(['Open', 'High', 'Low', 'NTx', 'Volume'], axis=1)
+    test_inputs = test_set
+    test_outputs = test_set.drop(["Open", "High", "Low", "NTx", "Volume"], axis=1)
+
+    print(training_set.head)
+    print(test_set.head)
+    print(training_inputs.shape)
+    print(test_inputs.shape)
+    print(training_outputs.shape)
+    print(test_outputs.shape)
+
+    model = models.Sequential()
+    model.add(layers.Dense(64, activation="relu", input_shape=(training_inputs.shape[1],)))
+    model.add(layers.Dense(64, activation="relu"))
+    model.add(layers.Dense(1))
+    model.compile(optimizer="rmsprop", loss="mse", metrics=["mae"])
+    history = model.fit(training_inputs, training_outputs, validation_data=(test_inputs, test_outputs), epochs=10, batch_size=1, verbose=2)
 
 def lstm_type_1(crypto, crypto_short):
     model_data = getData_CMC(crypto, crypto_short)
