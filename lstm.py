@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!python
 # _*_ coding=utf-8 _*_
 #original source:https://github.com/dashee87/blogScripts/blob/master/Jupyter/2017-11-20-predicting-cryptocurrency-prices-with-deep-learning.ipynb
 
@@ -22,7 +22,7 @@ from keras.layers import Dropout
 from keras.models import load_model
 
 window_len = 10
-split_date = "2017-06-01"
+split_date = "2018-03-01"
 
 def SigHandler_SIGINT(signum, frame):
     print()
@@ -37,21 +37,28 @@ class Argparser(object):
         self.args = parser.parse_args()
 
 def getData_CMC(crypto, crypto_short):
-    market_info = pd.read_html("https://coinmarketcap.com/currencies/"+crypto+"/historical-data/?start=20130428&end="+time.strftime("%Y%m%d"))[0]
+    market_info = pd.read_html("https://coinmarketcap.com/currencies/"+crypto+"/historical-data/?start=20160428&end="+time.strftime("%Y%m%d"))[0]
+    print(type(market_info))
     market_info =  market_info.assign(Date=pd.to_datetime(market_info['Date']))
-    if crypto == "ethereum": market_info.loc[market_info["Market Cap"]=="-","Market Cap"]=0
-    if crypto == "dogecoin": market_info.loc[market_info["Volume"]=="-","Volume"]=0
+    #print(market_info)
+    #if crypto == "ethereum": market_info.loc[market_info["Market Cap"]=="-","Market Cap"]=0
+    #if crypto == "dogecoin": market_info.loc[market_info["Volume"]=="-","Volume"]=0
     market_info["Volume"] = market_info["Volume"].astype("int64")
     market_info.columns = market_info.columns.str.replace("*", "")
-    print(type(market_info))
-    print(crypto + " head: ")
-    print(market_info.head())
+    #print(type(market_info))
+    #print(crypto + " head: ")
+    #print(market_info.head())
     kwargs = {'close_off_high': lambda x: 2*(x['High']- x['Close'])/(x['High']-x['Low'])-1, 'volatility': lambda x: (x['High']- x['Low'])/(x['Open'])}
     market_info = market_info.assign(**kwargs)
     model_data = market_info[['Date']+[coin+metric for coin in [""] for metric in ['Close','Volume','close_off_high','volatility']]]
     model_data = model_data.sort_values(by='Date')
-    print(model_data.head())
+    #print(model_data.head())
+    print(type(model_data))
     return model_data
+
+def getData_Stock(name, period):
+    info = pd.from_csv(path="./data/"+name+"/"+period+".csv")
+    return info
 
 def get_sets(crypto, model_data):
     training_set, test_set = model_data[model_data['Date']<split_date], model_data[model_data['Date']>=split_date]
@@ -93,15 +100,26 @@ def lstm_type_1(crypto, crypto_short):
     model_data = getData_CMC(crypto, crypto_short)
     np.random.seed(202)
     training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
-    model = build_model(training_inputs, output_size=1, neurons=20)
+    model = build_model(training_inputs, output_size=1, neurons=20, loss="mse")
     training_outputs = (training_set['Close'][window_len:].values/training_set['Close'][:-window_len].values)-1
     history = model.fit(training_inputs, training_outputs, epochs=50, batch_size=1, verbose=2, shuffle=True)
+
+def lstm_type_4(crypto, crypto_short, crypto2, crypto_short2):
+    model_data = getData_CMC(crypto, crypto_short)
+    model_data2 = getData_CMC(crypto2, crypto_short2)
+    np.random.seed(202)
+    training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
+    training_inputs2, test_inputs2, training_set2, test_set2 = get_sets(crypto2, model_data2)
+    return
+    model = build_model(training_inputs/training_inputs2, output_size=1, neurons=20, loss="mse")
+    training_outputs = ((training_set['Close'][window_len:].values)/(training_set['Close'][:-window_len].values))-1
+    history = model.fit(training_inputs/training_inputs2, training_outputs, epochs=10, batch_size=1, verbose=2, shuffle=True)
 
 def lstm_type_2(crypto, crypto_short, pred_range, neuron_count):
     model_data = getData_CMC(crypto, crypto_short)
     np.random.seed(202)
     training_inputs, test_inputs, training_set, test_set = get_sets(crypto, model_data)
-    model = build_model(training_inputs, output_size=pred_range, neurons=neuron_count)
+    model = build_model(training_inputs, output_size=pred_range, neurons=neuron_count, loss="mse")
     training_outputs = (training_set['Close'][window_len:].values/training_set['Close'][:-window_len].values)-1
     training_outputs = []
     for i in range(window_len, len(training_set['Close'])-pred_range):
@@ -139,6 +157,7 @@ def premain(argparser):
     lstm_type_1("ethereum", "ether")
     #lstm_type_2("ethereum", "ether", 5, 20)
     #lstm_type_3("ethereum", "ether", 5, 20)
+    #lstm_type_4("ethereum", "ether", "dogecoin", "doge")
     #load_models("ethereum", "eth")
 
 def main():

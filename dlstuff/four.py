@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!python
 # _*_ coding=utf-8 _*_
 
 import argparse
@@ -48,6 +48,7 @@ def premain(argparser):
     signal.signal(signal.SIGINT, SigHandler_SIGINT)
     #here
     (train_data, train_targets), (test_data, test_targets) = boston_housing.load_data()
+    print(type(train_data))
     mean = train_data.mean(axis=0)
     train_data -= mean
     std = train_data.std(axis=0)

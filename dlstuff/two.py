@@ -66,14 +66,12 @@ def premain(argparser):
     x_test = vectorize_sequences(test_data)
     y_train = np.asarray(train_labels).astype("float32")
     y_test = np.asarray(test_labels).astype("float32")
-
     model = models.Sequential()
     model.add(layers.Dense(16, kernel_regularizer=regularizers.l2(0.001), activation="relu", input_shape=(10000,)))
     model.add(layers.Dropout(0.5))
     model.add(layers.Dense(16, kernel_regularizer=regularizers.l2(0.001), activation="relu"))
     model.add(layers.Dropout(0.5))
     model.add(layers.Dense(1, activation="sigmoid"))
-
     x_val = x_train[:10000]
     partial_x_train = x_train[10000:]
     y_val = y_train[:10000]
