@@ -22,7 +22,8 @@ from keras.layers import Dropout
 from keras.models import load_model
 
 window_len = 10
-split_date = "2018-03-01"
+#split_date = "2018-03-01"
+split_date = "2017.01.01"
 
 def SigHandler_SIGINT(signum, frame):
     print()
@@ -57,7 +58,7 @@ def getData_CMC(crypto, crypto_short):
     return model_data
 
 def getData_Stock(name, period):
-    info = pd.from_csv(path="./data/"+name+"/"+period+".csv")
+    info = pd.read_csv("./data/"+name+"/"+period+".csv", encoding="utf-8")
     return info
 
 def get_sets(crypto, model_data):
@@ -69,7 +70,7 @@ def get_sets(crypto, model_data):
     for i in range(len(training_set) - window_len):
         temp_set = training_set[i:(i+window_len)].copy()
         for col in norm_cols:
-            temp_set.loc[:, col] = temp_set[col]/temp_set[col].iloc[0] -1
+            temp_set.loc[:, col] = temp_set[col]/temp_set[col].iloc[0] - 1
         LSTM_training_inputs.append(temp_set)
     LSTM_training_outputs = (training_set["Close"][window_len:].values/training_set["Close"][:-window_len].values) - 1
     LSTM_test_inputs = []
@@ -95,6 +96,9 @@ def build_model(inputs, output_size, neurons, activ_func="linear", dropout=0.25,
     model.add(Activation(activ_func))
     model.compile(loss=loss, optimizer=optimizer)
     return model
+
+def stock():
+    data = getData_Stock("irxo", "Daily")
 
 def lstm_type_1(crypto, crypto_short):
     model_data = getData_CMC(crypto, crypto_short)
@@ -154,11 +158,12 @@ def load_models(crypto, crypto_short):
 def premain(argparser):
     signal.signal(signal.SIGINT, SigHandler_SIGINT)
     #here
-    lstm_type_1("ethereum", "ether")
+    #lstm_type_1("ethereum", "ether")
     #lstm_type_2("ethereum", "ether", 5, 20)
     #lstm_type_3("ethereum", "ether", 5, 20)
     #lstm_type_4("ethereum", "ether", "dogecoin", "doge")
     #load_models("ethereum", "eth")
+    stock()
 
 def main():
     argparser = Argparser()
