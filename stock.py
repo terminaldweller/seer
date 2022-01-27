@@ -18,30 +18,41 @@ from keras.layers import LSTM
 from keras.layers import Dropout
 from keras.models import load_model
 
+
 def SigHandler_SIGINT(signum, frame):
     print()
     sys.exit(0)
+
 
 class Argparser(object):
     def __init__(self):
         parser = argparse.ArgumentParser()
         parser.add_argument("--string", type=str, help="string")
-        parser.add_argument("--bool", action="store_true", help="bool", default=False)
-        parser.add_argument("--dbg", action="store_true", help="debug", default=False)
+        parser.add_argument(
+            "--bool", action="store_true", help="bool", default=False
+        )
+        parser.add_argument(
+            "--dbg", action="store_true", help="debug", default=False
+        )
         self.args = parser.parse_args()
+
 
 def build_model(train_data):
     model = models.Sequential()
-    model.add(layers.Dense(64, activation="relu", input_shape=(train_data.shape[1],)))
+    model.add(
+        layers.Dense(64, activation="relu", input_shape=(train_data.shape[1],))
+    )
     model.add(layers.Dense(64, activation="relu"))
     model.add(layers.Dense(1))
     model.compile(optimizer="rmsprop", loss="mse", metrics=["acc"])
     return model
 
+
 # write code here
 def premain(argparser):
     signal.signal(signal.SIGINT, SigHandler_SIGINT)
-    #here
+    # here
+
 
 def main():
     argparser = Argparser()
@@ -50,13 +61,15 @@ def main():
             premain(argparser)
         except Exception as e:
             print(e.__doc__)
-            if e.message: print(e.message)
+            if e.message:
+                print(e.message)
             variables = globals().copy()
             variables.update(locals())
             shell = code.InteractiveConsole(variables)
             shell.interact(banner="DEBUG REPL")
     else:
         premain(argparser)
+
 
 if __name__ == "__main__":
     main()

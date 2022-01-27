@@ -20,37 +20,57 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 
+
 def SigHandler_SIGINT(signum, frame):
     print()
     sys.exit(0)
+
 
 class Argparser(object):
     def __init__(self):
         parser = argparse.ArgumentParser()
         parser.add_argument("--string", type=str, help="string")
-        parser.add_argument("--bool", action="store_true", help="bool", default=False)
-        parser.add_argument("--dbg", action="store_true", help="debug", default=False)
+        parser.add_argument(
+            "--bool", action="store_true", help="bool", default=False
+        )
+        parser.add_argument(
+            "--dbg", action="store_true", help="debug", default=False
+        )
         self.args = parser.parse_args()
+
 
 def marrionette_type_1():
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
-    names = ["sepal-length", "sepal-width", "petal-length", "petal-width", "class"]
+    names = [
+        "sepal-length",
+        "sepal-width",
+        "petal-length",
+        "petal-width",
+        "class",
+    ]
     dataset = pandas.read_csv(url, names=names)
     print(dataset.shape)
     print(dataset.head(20))
     print(dataset.describe())
     print(dataset.groupby("class").size())
-    #dataset.plot(kind="box", subplots=True, layout=(2,2), sharex=False, sharey=False)
-    #dataset.hist()
+    # dataset.plot(kind="box", subplots=True, layout=(2,2), sharex=False, sharey=False)
+    # dataset.hist()
     pandas.plotting.scatter_matrix(dataset)
     plt.show()
     array = dataset.values
-    X = array[:,0:4]
-    Y = array[:,4]
+    X = array[:, 0:4]
+    Y = array[:, 4]
     validation_size = 0.20
     seed = 7
-    X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X,Y,test_size=validation_size, random_state=seed)
-    scoring="accuracy"
+    (
+        X_train,
+        X_validation,
+        Y_train,
+        Y_validation,
+    ) = model_selection.train_test_split(
+        X, Y, test_size=validation_size, random_state=seed
+    )
+    scoring = "accuracy"
     models = []
     models.append(("LR", LogisticRegression()))
     models.append(("LDA", LinearDiscriminantAnalysis()))
@@ -62,7 +82,9 @@ def marrionette_type_1():
     names = []
     for name, model in models:
         kfold = model_selection.KFold(n_splits=10, random_state=seed)
-        cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
+        cv_results = model_selection.cross_val_score(
+            model, X_train, Y_train, cv=kfold, scoring=scoring
+        )
         results.append(cv_results)
         names.append(name)
         msg = "%s:%f(%f)" % (name, cv_results.mean(), cv_results.std())
@@ -82,11 +104,13 @@ def marrionette_type_1():
     print(confusion_matrix(Y_validation, predictions))
     print(classification_report(Y_validation, predictions))
 
+
 # write code here
 def premain(argparser):
     signal.signal(signal.SIGINT, SigHandler_SIGINT)
-    #here
+    # here
     marrionette_type_1()
+
 
 def main():
     argparser = Argparser()
@@ -100,6 +124,7 @@ def main():
             shell.interact(banner="DEBUG REPL")
     else:
         premain(argparser)
+
 
 if __name__ == "__main__":
     main()
